@@ -1,0 +1,80 @@
+--- a/wagon-providers/pom.xml
++++ b/wagon-providers/pom.xml
+@@ -40,7 +40,6 @@
+     <module>wagon-scm</module>
+     <module>wagon-ssh-external</module>
+     <module>wagon-ssh-common</module>
+-    <module>wagon-ssh-common-test</module>
+     <module>wagon-ssh</module>
+     <module>wagon-webdav-jackrabbit</module>
+   </modules>
+--- a/wagon-providers/wagon-ssh-external/pom.xml
++++ b/wagon-providers/wagon-ssh-external/pom.xml
+@@ -47,11 +47,6 @@
+       <artifactId>wagon-ssh-common</artifactId>
+     </dependency>
+     <dependency>
+-      <groupId>org.apache.maven.wagon</groupId>
+-      <artifactId>wagon-ssh-common-test</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+       <groupId>org.slf4j</groupId>
+       <artifactId>slf4j-simple</artifactId>
+     </dependency>
+@@ -62,6 +57,20 @@
+     </dependency>
+ 
+   </dependencies>
++
++  <build>
++    <plugins>
++      <plugin>
++        <groupId>org.apache.maven.plugins</groupId>
++        <artifactId>maven-compiler-plugin</artifactId>
++        <configuration>
++          <testExcludes>
++            <exclude>**/*.java</exclude>
++          </testExcludes>
++        </configuration>
++      </plugin>
++    </plugins>
++   </build>
+ 
+   <profiles>
+     <profile>
+--- a/wagon-providers/wagon-ssh/pom.xml
++++ b/wagon-providers/wagon-ssh/pom.xml
+@@ -63,11 +63,6 @@
+       <artifactId>wagon-ssh-common</artifactId>
+     </dependency>
+     <dependency>
+-      <groupId>org.apache.maven.wagon</groupId>
+-      <artifactId>wagon-ssh-common-test</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+       <groupId>org.eclipse.jetty.aggregate</groupId>
+       <artifactId>jetty-all</artifactId>
+       <scope>test</scope>
+@@ -87,6 +82,20 @@
+       <scope>test</scope>
+     </dependency>
+   </dependencies>
++
++  <build>
++    <plugins>
++      <plugin>
++        <groupId>org.apache.maven.plugins</groupId>
++        <artifactId>maven-compiler-plugin</artifactId>
++        <configuration>
++          <testExcludes>
++            <exclude>**/*.java</exclude>
++          </testExcludes>
++        </configuration>
++      </plugin>
++    </plugins>
++   </build>
+ 
+   <profiles>
+     <profile>

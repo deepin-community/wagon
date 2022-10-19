@@ -1,0 +1,207 @@
+Source: wagon
+Section: java
+Priority: optional
+Maintainer: Debian Java Maintainers <pkg-java-maintainers@lists.alioth.debian.org>
+Uploaders: Emmanuel Bourg <ebourg@apache.org>
+Build-Depends:
+ debhelper (>= 11~),
+ default-jdk,
+ junit4,
+ libcommons-codec-java,
+ libcommons-io-java,
+ libcommons-net-java,
+ libeasymock-java (>= 3.2),
+ libhttpcore-java (>= 4.4.11-1~),
+ libhttpclient-java (>= 4.5.6-2~),
+ libjetty9-extra-java (>= 9.4),
+ libjetty9-java (>= 9.4),
+ libjsch-agent-proxy-java,
+ libjsch-java,
+ libjsoup-java,
+ libmaven-scm-java,
+ libmaven-shade-plugin-java,
+ libplexus-classworlds-java (>= 2.5),
+ libplexus-component-metadata-java,
+ libplexus-container-default1.5-java,
+ libplexus-interactivity-api-java,
+ libplexus-utils2-java,
+ libservlet3.1-java,
+ maven-debian-helper
+Standards-Version: 4.5.0
+Vcs-Git: https://salsa.debian.org/java-team/wagon.git
+Vcs-Browser: https://salsa.debian.org/java-team/wagon
+Homepage: http://maven.apache.org/wagon/
+
+Package: libwagon-java
+Architecture: all
+Section: oldlibs
+Depends:
+ ${misc:Depends},
+ libwagon-provider-api-java (>= ${source:Version}),
+ libwagon-file-java (>= ${source:Version}),
+ libwagon-ftp-java (>= ${source:Version}),
+ libwagon-http-java (>= ${source:Version}),
+ libwagon-http-shaded-java (>= ${source:Version})
+Description: Artifact transport abstraction used in Maven (transitional package)
+ The Wagon project defines a simple API for transferring resources
+ (artifacts) to and from repositories. The word repository is used in this
+ context as it is commonly used in Maven and means a storage of artifacts.
+ It is also used to deploy the Maven generated site to a server.
+ .
+ Wagon defines a unified API, and it currently has the following providers:
+  * File
+  * HTTP
+  * HTTP lightweight
+  * FTP
+  * SSH/SCP
+  * WebDAV
+
+Package: libwagon-provider-api-java
+Architecture: all
+Depends: ${misc:Depends}, libplexus-utils2-java
+Breaks: libwagon-java (<< 3.0.0-2~)
+Replaces: libwagon-java (<< 3.0.0-2~)
+Description: Artifact transport abstraction used in Maven (Provider API)
+ The Wagon project defines a simple API for transferring resources
+ (artifacts) to and from repositories. The word repository is used in this
+ context as it is commonly used in Maven and means a storage of artifacts.
+ It is also used to deploy the Maven generated site to a server.
+ .
+ Wagon defines a unified API, and it currently has the following providers:
+  * File
+  * HTTP
+  * HTTP lightweight
+  * FTP
+  * SSH/SCP
+  * WebDAV
+ .
+ This package contains the wagon-provider-api library.
+
+Package: libwagon-file-java
+Architecture: all
+Depends: ${misc:Depends}, libslf4j-java, libwagon-provider-api-java (>= ${source:Version})
+Breaks: libwagon-java (<< 3.0.0-2~)
+Replaces: libwagon-java (<< 3.0.0-2~)
+Description: Artifact transport abstraction used in Maven (file provider)
+ The Wagon project defines a simple API for transferring resources
+ (artifacts) to and from repositories. The word repository is used in this
+ context as it is commonly used in Maven and means a storage of artifacts.
+ It is also used to deploy the Maven generated site to a server.
+ .
+ Wagon defines a unified API, and it currently has the following providers:
+  * File
+  * HTTP
+  * HTTP lightweight
+  * FTP
+  * SSH/SCP
+  * WebDAV
+ .
+ This package contains the wagon-file library.
+
+Package: libwagon-ftp-java
+Architecture: all
+Depends:
+ ${misc:Depends},
+ libcommons-io-java,
+ libcommons-net-java,
+ libslf4j-java,
+ libwagon-provider-api-java (>= ${source:Version})
+Breaks: libwagon-java (<< 3.0.0-2~)
+Replaces: libwagon-java (<< 3.0.0-2~)
+Description: Artifact transport abstraction used in Maven (FTP provider)
+ The Wagon project defines a simple API for transferring resources
+ (artifacts) to and from repositories. The word repository is used in this
+ context as it is commonly used in Maven and means a storage of artifacts.
+ It is also used to deploy the Maven generated site to a server.
+ .
+ Wagon defines a unified API, and it currently has the following providers:
+  * File
+  * HTTP
+  * HTTP lightweight
+  * FTP
+  * SSH/SCP
+  * WebDAV
+ .
+ This package contains the wagon-ftp library.
+
+Package: libwagon-http-java
+Architecture: all
+Depends:
+ ${misc:Depends},
+ libcommons-io-java,
+ libhttpcore-java,
+ libhttpclient-java,
+ libjsoup-java,
+ libslf4j-java,
+ libwagon-provider-api-java (>= ${source:Version})
+Breaks: libwagon-java (<< 3.0.0-2~)
+Replaces: libwagon-java (<< 3.0.0-2~)
+Description: Artifact transport abstraction used in Maven (HTTP providers)
+ The Wagon project defines a simple API for transferring resources
+ (artifacts) to and from repositories. The word repository is used in this
+ context as it is commonly used in Maven and means a storage of artifacts.
+ It is also used to deploy the Maven generated site to a server.
+ .
+ Wagon defines a unified API, and it currently has the following providers:
+  * File
+  * HTTP
+  * HTTP lightweight
+  * FTP
+  * SSH/SCP
+  * WebDAV
+ .
+ This package contains the wagon-http-* libraries.
+
+Package: libwagon-http-shaded-java
+Architecture: all
+Depends: ${misc:Depends}
+Breaks: libwagon-java (<< 3.0.0-2~)
+Replaces: libwagon-java (<< 3.0.0-2~)
+Built-Using:
+ commons-io (= ${commons-io:Version}),
+ httpcomponents-core (= ${httpcore:Version}),
+ httpcomponents-client (= ${httpclient:Version}),
+ jsoup (= ${jsoup:Version}),
+ libcommons-codec-java (= ${commons-codec:Version})
+Description: Artifact transport abstraction used in Maven (HTTP providers with dependencies)
+ The Wagon project defines a simple API for transferring resources
+ (artifacts) to and from repositories. The word repository is used in this
+ context as it is commonly used in Maven and means a storage of artifacts.
+ It is also used to deploy the Maven generated site to a server.
+ .
+ Wagon defines a unified API, and it currently has the following providers:
+  * File
+  * HTTP
+  * HTTP lightweight
+  * FTP
+  * SSH/SCP
+  * WebDAV
+ .
+ This package contains the wagon-http-shaded artifact.
+
+Package: libwagon-ssh-java
+Architecture: all
+Depends:
+ ${misc:Depends},
+ libjsch-agent-proxy-java,
+ libjsch-java,
+ libplexus-interactivity-api-java,
+ libslf4j-java,
+ libwagon-provider-api-java (>= ${source:Version})
+Breaks: libwagon-java (<< 3.0.0-2~)
+Replaces: libwagon-java (<< 3.0.0-2~)
+Description: Artifact transport abstraction used in Maven (SSH providers)
+ The Wagon project defines a simple API for transferring resources
+ (artifacts) to and from repositories. The word repository is used in this
+ context as it is commonly used in Maven and means a storage of artifacts.
+ It is also used to deploy the Maven generated site to a server.
+ .
+ Wagon defines a unified API, and it currently has the following providers:
+  * File
+  * HTTP
+  * HTTP lightweight
+  * FTP
+  * SSH/SCP
+  * WebDAV
+ .
+ This package contains the wagon-ssh-* libraries.

@@ -1,0 +1,292 @@
+wagon (3.3.4-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+    - Refreshed the patches
+  * Standards-Version updated to 4.5.0
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 27 Jan 2020 17:40:37 +0100
+
+wagon (3.3.3-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+    - Refreshed the patches
+  * Standards-Version updated to 4.4.0
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Thu, 11 Jul 2019 22:09:45 +0200
+
+wagon (3.3.1-2) unstable; urgency=medium
+
+  * Team upload.
+  * Rebuild with libhttpcore-java (>= 4.4.11-1~) to restore the compatibility
+    with Java 7 (Closes: #922347)
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Fri, 15 Feb 2019 00:00:24 +0100
+
+wagon (3.3.1-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+  * Rebuild with libhttpclient-java (>= 4.5.6-2~) to restore the compatibility
+    with Java 8 (Closes: #918772)
+  * Standards-Version updated to 4.3.0
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Fri, 11 Jan 2019 23:47:34 +0100
+
+wagon (3.2.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * Fixed the build failure with Jetty 9.4
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 10 Dec 2018 18:48:06 +0100
+
+wagon (3.2.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+    - Refreshed the patches
+  * Generate Java 7 compatible bytecode
+  * Standards-Version updated to 4.2.1
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 19 Nov 2018 10:32:18 +0100
+
+wagon (3.1.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+    - Refreshed the patches
+  * Ensure the Java 8 compatibility when built with Java 9 or later
+  * Removed Damien Raude-Morvan from the uploaders (Closes: #889397)
+  * Standards-Version updated to 4.1.5
+  * Switch to debhelper level 11
+  * Use salsa.debian.org Vcs-* URLs
+  * Track and download the new releases from GitHub
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 30 Jul 2018 15:52:13 +0200
+
+wagon (3.0.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * Split libwagon-java into smaller packages
+  * Build again the wagon-ssh-* modules
+  * Removed the unused build dependencies: libjaxen-java,
+    libcommons-logging-java, libplexus-maven-plugin-java
+    and libmaven-install-plugin-java
+  * Added an explicit dependency on libplexus-classworlds-java
+    (used by wagon-tck-http)
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Thu, 09 Nov 2017 01:29:11 +0100
+
+wagon (3.0.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * Renamed the package to wagon
+  * New upstream release
+    - Refreshed the patches
+  * Standards-Version updated to 4.1.1
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Wed, 08 Nov 2017 13:43:52 +0100
+
+wagon2 (2.12-3) unstable; urgency=medium
+
+  * Team upload.
+  * Fixed the build failure caused by the maven-parent update
+  * Depend on libplexus-classworlds2-java instead of libplexus-classworlds-java
+  * Depend on libplexus-utils2-java instead of libplexus-utils-java
+  * Depend on libplexus-container-default1.5-java instead of
+    libplexus-containers-java and libplexus-container-default-java
+    (Closes: #855959)
+  * Removed the unused dependencies on libbcprov-java and libnekohtml-java
+  * Build depend on junit4 instead of junit (Closes: #869004)
+  * Removed the unused doc dependencies
+  * Standards-Version updated to 4.0.0
+  * Simplified the Maven rules
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Thu, 03 Aug 2017 12:53:27 +0200
+
+wagon2 (2.12-2) unstable; urgency=medium
+
+  * Team upload.
+  * Upload to unstable
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 19 Jun 2017 15:41:41 +0200
+
+wagon2 (2.12-1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream version. (Closes: #861545)
+  * Update debian/watch and use Files-Excluded in debian/copyright.
+    Drop debian/orig-tar.sh and debian/orig-tar.exclude.
+  * Refresh patches for 2.12 release.
+    - Drop add_explicit_log4j patch
+    - Add updated-jetty-compatibility.patch (reworked jetty-compatibility)
+    - Refresh for change in source line-endings.
+  * Add build-dep on libservlet3.1-java
+  * Drop unneeded build-dep on subversion
+  * Rewrite aggregate:jetty-all -> jetty:jetty-webapp in maven.rules
+  * Drop geronimo servlet-spec api from maven.rules
+  * Drop log4j from maven.rules
+  * Map javax.servlet-api to version 3.1 in maven.rules.
+
+ -- tony mancill <tmancill@debian.org>  Sun, 07 May 2017 10:35:42 -0700
+
+wagon2 (2.10-6) unstable; urgency=medium
+
+  * Team upload.
+  * Transition to Jetty 9
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Tue, 25 Oct 2016 10:21:10 +0200
+
+wagon2 (2.10-5) unstable; urgency=medium
+
+  * Team upload.
+  * Skip the tests. (Closes: #837022)
+  * Use compat level 10.
+
+ -- Markus Koschany <apo@debian.org>  Sun, 18 Sep 2016 21:12:54 +0200
+
+wagon2 (2.10-4) unstable; urgency=medium
+
+  * Team upload.
+  * Transition to Jetty 8
+  * Standards-Version updated to 3.9.8 (no changes)
+  * Use a secure Vcs-Git URL
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Tue, 17 May 2016 18:23:36 +0200
+
+wagon2 (2.10-3) unstable; urgency=medium
+
+  * Team upload.
+  * Build depend on libplexus-containers1.5-java
+    instead of libplexus-component-metadata-java
+  * Standards-Version updated to 3.9.7 (no changes)
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Wed, 10 Feb 2016 21:32:55 +0100
+
+wagon2 (2.10-2) unstable; urgency=medium
+
+  * Team upload.
+  * Fixed the build failure with Maven 3
+  * Build with the DH sequencer instead of CDBS
+  * Refreshed debian/copyright
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 14 Dec 2015 14:00:00 +0100
+
+wagon2 (2.10-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+  * Depend on libcommons-net-java instead of libcommons-net2-java
+    (Closes: #800763)
+  * No longer build wagon-webdav-jackrabbit (never used in Debian)
+    (Closes: #800996)
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Tue, 03 Nov 2015 09:46:06 +0100
+
+wagon2 (2.9-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+    - Refreshed the patches
+  * Removed the build dependency on libmaven-enforcer-plugin-java
+  * No longer build and install the unused wagon-scm and wagon-ssh modules
+    to reduce the dependencies of libwagon2-java.
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Wed, 02 Sep 2015 23:46:43 +0200
+
+wagon2 (2.7-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream release
+  * Updated Standards-Version to 3.9.6 (no changes)
+  * Updated no_itcould_webdav.diff patch.
+
+ -- Eugene Zhukov <jevgeni.zh@gmail.com>  Fri, 10 Oct 2014 07:17:42 +0000
+
+wagon2 (2.6-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Disable test accessing the network (Eugene Zhukov). Closes: #761171.
+
+ -- Matthias Klose <doko@debian.org>  Thu, 09 Oct 2014 13:27:03 +0200
+
+wagon2 (2.6-1) unstable; urgency=medium
+
+  * New upstream releases (Closes: #718869)
+    - Refreshed the patches
+    - New dependencies on libhttpclient-java and libjsch-agent-proxy-java
+    - Build depend on libeasymock-java (>= 3.2)
+  * Switch to debhelper level 9
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Fri, 14 Mar 2014 17:05:17 +0100
+
+wagon2 (2.5-1) unstable; urgency=low
+
+  * New upstream release
+    - Refreshed the patches
+    - Removed the wagon-providers/wagon-http-shared4 module
+  * debian/control:
+    - Use canonical URLs for the Vcs-* fields
+    - Updated Standards-Version to 3.9.5 (no changes)
+  * Use XZ compression for the upstream tarball
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Sun, 27 Oct 2013 22:30:07 +0100
+
+wagon2 (2.4-1) unstable; urgency=low
+
+  * New upstream release
+    - Removed the patch for CVE-2013-0253 fixed in version 2.4
+    - Refreshed the patches
+    - Added the required build dependency on libplexus-component-metadata-java
+    - Added Maven rules to ignore bnd and plexus-maven-plugin
+    - Added a patch to fix a type cast issue in ScmWagon.java
+  * Fix the watch file to report the most recent versions
+  * Use the upstream tarball instead of a svn tag to fetch the orig source
+  * debian/copyright: Fixed a typo in the Format URI
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Thu, 16 May 2013 01:37:59 +0200
+
+wagon2 (2.2-4) unstable; urgency=low
+
+  * Team upload.
+  * Acknowledge NMU - thank you to Michael Gilbert (Closes: #701991)
+  * Prevent filename conflict with libwagon-java (Closes: #707587)
+    - Thank you to James Page for the patch.
+  * Bump Standards-Version to 3.9.4 (no changes).
+
+ -- tony mancill <tmancill@debian.org>  Fri, 10 May 2013 22:47:35 -0700
+
+wagon2 (2.2-3+nmu1) unstable; urgency=high
+
+  * Non-maintainer upload by the Security Team.
+  * Fix cve-2013-0253: doesn't check SSL certificates by default
+    (closes: #701991).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Fri, 22 Mar 2013 01:19:26 +0000
+
+wagon2 (2.2-3) unstable; urgency=low
+
+  [ Damien Raude-Morvan ]
+  * Disable tests which make remote HTTP/HTTPS connections. (Closes: #666577).
+  * Bump Standards-Version to 3.9.3: no changes needed.
+  * Force usj-name for installed JAR.
+
+  [ Miguel Landaeta ]
+  * Fix Vcs-* URLs.
+
+ -- Damien Raude-Morvan <drazzib@debian.org>  Sun, 27 May 2012 15:30:11 +0200
+
+wagon2 (2.2-2) unstable; urgency=low
+
+  * d/libwagon2-java.poms: Install artifacts in /usr/share/java.
+
+ -- Damien Raude-Morvan <drazzib@debian.org>  Mon, 06 Feb 2012 21:40:31 +0100
+
+wagon2 (2.2-1) unstable; urgency=low
+
+  * New upstream release:
+    - It's a major release so use a new source package: wagon2.
+    - Old wagon package have to be kept for maven 2.x build.
+
+ -- Damien Raude-Morvan <drazzib@debian.org>  Sun, 29 Jan 2012 23:23:22 +0100

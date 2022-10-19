@@ -1,0 +1,68 @@
+Description: Fixes the compatibility with Jetty 9.4
+Author: Emmanuel Bourg <ebourg@apache.org>
+Forwarded: no
+--- a/wagon-provider-test/src/main/java/org/apache/maven/wagon/http/HttpWagonTestCase.java
++++ b/wagon-provider-test/src/main/java/org/apache/maven/wagon/http/HttpWagonTestCase.java
+@@ -2239,7 +2239,9 @@
+ 
+         TestSecurityHandler sh = new TestSecurityHandler();
+         HashLoginService hashLoginService = new HashLoginService( "MyRealm" );
+-        hashLoginService.putUser( "user", new Password( "secret" ), new String[] { "admin" } );
++        org.eclipse.jetty.security.UserStore userStore = new org.eclipse.jetty.security.UserStore();
++        hashLoginService.setUserStore( userStore );
++        userStore.addUser( "user", new Password( "secret" ), new String[] { "admin" } );
+         sh.setLoginService( hashLoginService );
+         sh.setConstraintMappings( new ConstraintMapping[]{ cm } );
+         sh.setAuthenticator ( new BasicAuthenticator() );
+--- a/wagon-tcks/wagon-tck-http/src/main/java/org/apache/maven/wagon/tck/http/fixture/ServerFixture.java
++++ b/wagon-tcks/wagon-tck-http/src/main/java/org/apache/maven/wagon/tck/http/fixture/ServerFixture.java
+@@ -22,12 +22,12 @@
+ import org.eclipse.jetty.security.ConstraintMapping;
+ import org.eclipse.jetty.security.ConstraintSecurityHandler;
+ import org.eclipse.jetty.security.HashLoginService;
++import org.eclipse.jetty.security.UserStore;
+ import org.eclipse.jetty.server.Handler;
+ import org.eclipse.jetty.server.Server;
+ import org.eclipse.jetty.server.ServerConnector;
+ import org.eclipse.jetty.server.handler.DefaultHandler;
+ import org.eclipse.jetty.server.handler.HandlerCollection;
+-import org.eclipse.jetty.server.session.AbstractSessionManager;
+ import org.eclipse.jetty.server.session.SessionHandler;
+ import org.eclipse.jetty.servlet.FilterHolder;
+ import org.eclipse.jetty.servlet.FilterMapping;
+@@ -71,6 +71,8 @@
+ 
+     private final HashLoginService loginService;
+ 
++    private final UserStore userStore;
++
+     private final ConstraintSecurityHandler securityHandler;
+ 
+     private int filterCount = 0;
+@@ -117,6 +119,8 @@
+         securityHandler = new ConstraintSecurityHandler();
+ 
+         loginService = new HashLoginService( "Test Server" );
++        userStore = new UserStore();
++        loginService.setUserStore( userStore );
+ 
+         securityHandler.setLoginService( loginService );
+         securityHandler.setConstraintMappings( new ConstraintMapping[]{ cm } );
+@@ -130,7 +134,7 @@
+         webappContext.setHandler( securityHandler );
+ 
+         SessionHandler sessionHandler = webappContext.getSessionHandler();
+-        ( (AbstractSessionManager) sessionHandler.getSessionManager() ).setUsingCookies( false );
++        sessionHandler.setUsingCookies( false );
+ 
+         HandlerCollection handlers = new HandlerCollection();
+         handlers.setHandlers( new Handler[]{ webappContext, new DefaultHandler() } );
+@@ -159,7 +163,7 @@
+ 
+     public void addUser( final String user, final String password )
+     {
+-        loginService.putUser( user, new Password( password ), new String[] { "allowed" } );
++        userStore.addUser( user, new Password( password ), new String[] { "allowed" } );
+     }
+ 
+     public Server getServer()

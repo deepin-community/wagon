@@ -1,0 +1,29 @@
+From: Torsten Werner <twerner@debian.org>
+Date: Mon, 29 Aug 2011 21:16:24 +0200
+Subject: [PATCH] do not build FtpWagonTest.java
+
+---
+ wagon-providers/wagon-ftp/pom.xml |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+--- a/wagon-providers/wagon-ftp/pom.xml
++++ b/wagon-providers/wagon-ftp/pom.xml
+@@ -60,4 +60,18 @@
+     </dependency>
+   </dependencies>
+ 
++  <build>
++    <plugins>
++      <plugin>
++        <groupId>org.apache.maven.plugins</groupId>
++        <artifactId>maven-compiler-plugin</artifactId>
++        <configuration>
++          <testExcludes>
++            <exclude>**/FtpWagonTest.java</exclude>
++          </testExcludes>
++        </configuration>
++      </plugin>
++    </plugins>
++   </build>
++
+ </project>

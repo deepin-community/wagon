@@ -1,0 +1,18 @@
+--- a/wagon-providers/wagon-webdav-jackrabbit/pom.xml
++++ b/wagon-providers/wagon-webdav-jackrabbit/pom.xml
+@@ -159,6 +159,15 @@
+           </systemPropertyVariables>
+         </configuration>
+       </plugin>
++
++    <plugin-->
++        <artifactId>maven-compiler-plugin</artifactId>
++        <configuration>
++            <testExcludes>
++                <exclude>**/*.java</exclude>
++            </testExcludes>
++        </configuration>
++    </plugin>
+     </plugins>
+   </build>
+ </project>

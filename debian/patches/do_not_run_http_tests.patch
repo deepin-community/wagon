@@ -1,0 +1,46 @@
+Author: Torsten Werner <twerner@debian.org>
+Author: Damien Raude-Morvan <drazzib@debian.org>
+Subject: Do not run tests making HTTP/HTTPS connections
+--- a/wagon-providers/wagon-http-lightweight/pom.xml
++++ b/wagon-providers/wagon-http-lightweight/pom.xml
+@@ -70,4 +70,19 @@
+       <artifactId>slf4j-simple</artifactId>
+     </dependency>
+   </dependencies>
++
++  <build>
++    <plugins>
++      <plugin>
++        <groupId>org.apache.maven.plugins</groupId>
++        <artifactId>maven-surefire-plugin</artifactId>
++        <configuration>
++          <excludes>
++            <exclude>**/LightweightHttp*</exclude>
++            <exclude>**/TckTest*</exclude>
++          </excludes>
++        </configuration>
++      </plugin>
++    </plugins>
++  </build>
+ </project>
+--- a/wagon-providers/wagon-http/pom.xml
++++ b/wagon-providers/wagon-http/pom.xml
+@@ -168,6 +168,18 @@
+           </systemPropertyVariables>
+         </configuration>
+       </plugin>
++
++      <plugin>
++        <groupId>org.apache.maven.plugins</groupId>
++        <artifactId>maven-surefire-plugin</artifactId>
++        <configuration>
++          <excludes>
++            <exclude>**/TckTest*</exclude>
++            <exclude>**/HttpsWagon*</exclude>
++            <exclude>**/HttpWagon*</exclude>
++          </excludes>
++        </configuration>
++      </plugin>
+     </plugins>
+   </build>
+ </project>

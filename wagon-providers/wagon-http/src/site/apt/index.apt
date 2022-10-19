@@ -1,0 +1,78 @@
+ ------
+ Maven Wagon HTTP
+ ------
+ Carlos Sanchez
+ Olivier Lamy
+ ------
+ 2013-02-05
+ ------
+
+ ~~ Licensed to the Apache Software Foundation (ASF) under one
+ ~~ or more contributor license agreements.  See the NOTICE file
+ ~~ distributed with this work for additional information
+ ~~ regarding copyright ownership.  The ASF licenses this file
+ ~~ to you under the Apache License, Version 2.0 (the
+ ~~ "License"); you may not use this file except in compliance
+ ~~ with the License.  You may obtain a copy of the License at
+ ~~
+ ~~   http://www.apache.org/licenses/LICENSE-2.0
+ ~~
+ ~~ Unless required by applicable law or agreed to in writing,
+ ~~ software distributed under the License is distributed on an
+ ~~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~~ KIND, either express or implied.  See the License for the
+ ~~ specific language governing permissions and limitations
+ ~~ under the License.
+
+ ~~ NOTE: For help with the syntax of this file, see:
+ ~~ http://maven.apache.org/doxia/references/apt-format.html
+
+Maven Wagon HTTP
+
+ This component is an implementation of Wagon provider for HTTP access.
+ It uses {{{http://hc.apache.org/httpcomponents-client-ga/}Apache HttpComponents client}} as lower level layer.
+
+ It enables Maven to use remote repositories stored in HTTP servers.
+
+
+Features
+
+ Starting with version 2.0, a pooled http connection manager is used.
+ You can configure it through the following system properties:
+
+ * <<<maven.wagon.http.pool>>> = true/false (default true), enable/disable the pool mechanism.
+
+ * <<<maven.wagon.httpconnectionManager.maxPerRoute>>> = integer (default 20), maximum number of http(s) connection per destination.
+
+ * <<<maven.wagon.httpconnectionManager.maxTotal>>> = integer (default 40), maximum number of http(s) connection.
+
+ []
+
+ Other features can be configured through system properties:
+
+ * <<<maven.wagon.http.ssl.insecure>>> = true/false (default false), enable/disable use of relaxed ssl check for user generated certificates.
+
+ * <<<maven.wagon.http.ssl.allowall>>> = true/false (default false), enable/disable match of the server's X.509 certificate with hostname. If disabled, a browser like check will be used.
+
+ * <<<maven.wagon.http.ssl.ignore.validity.dates>>> = true/false (default false), ignore issues with certificate dates.
+
+ * <<<maven.wagon.rto>>> = time in ms (default 1800000), read time out.
+
+ []
+
+ Since version 3.2, the retry handler can be configured with system properties:
+
+ * <<<maven.wagon.http.retryHandler.class>>> supports this set of values:
+
+    * <<<default>>> will use an instance of {{{http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/client/DefaultHttpRequestRetryHandler.html}<<<DefaultHttpRequestRetryHandler>>>}} respecting <<<requestSentEnabled>>>, <<<count>>> and <<<nonRetryableClasses>>>.
+
+    *<< <standard>>> will use an instance of {{{http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/client/StandardHttpRequestRetryHandler.html}<<<StandardHttpRequestRetryHandler>>>}} respecting <<<requestSentEnabled>>> and <<<count>>>.
+
+    * Any fully qualified name of a {{{https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/client/HttpRequestRetryHandler.html}<<<HttpRequestRetryHandler>>>}} implementation will be instantiated with its default constructor.
+
+ * <<<maven.wagon.http.retryHandler.requestSentEnabled>>> = <<<requestSentEnabled>>> for <<<default>>> or <<<standard>>> implementations.
+
+ * <<<maven.wagon.http.retryHandler.count>>> = number of retries for <<<default>>> or <<<standard>>> implementations.
+
+ * <<<maven.wagon.http.retryHandler.nonRetryableClasses>>> = a comma-separated list of fully qualified class names bypassing the retries (only the <<<default>>> implementation).
+ If not set, the default value from {{{http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/impl/client/DefaultHttpRequestRetryHandler.html}<<<DefaultHttpRequestRetryHandler>>>}} will be used.

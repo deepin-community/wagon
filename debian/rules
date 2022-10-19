@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+
+export JAVA_HOME := /usr/lib/jvm/default-java
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	-mkdir -p $(CURDIR)/wagon-providers/wagon-scm/target/test-classes/
+	-svnadmin create $(CURDIR)/wagon-providers/wagon-scm/target/test-classes/test-repo-svn
+	dh_auto_build
+
+override_dh_auto_clean:
+	-rm -Rf $(CURDIR)/wagon-providers/wagon-scm/target/test-classes/test-repo-svn
+	dh_auto_clean
+
+override_dh_auto_install:
+	dh_auto_install
+	mh_installjar -plibwagon-http-shaded-java --java-lib --usj-name=wagon-http-shaded --classifier=shaded wagon-providers/wagon-http/pom.xml wagon-providers/wagon-http/target/wagon-http-*-shaded.jar
+
+override_dh_gencontrol:
+	dh_gencontrol -- -Vhttpcore:Version=$(shell dpkg-query -f '$${source:Version}' --show libhttpcore-java) \
+	                 -Vhttpclient:Version=$(shell dpkg-query -f '$${source:Version}' --show libhttpclient-java) \
+	                 -Vcommons-codec:Version=$(shell dpkg-query -f '$${source:Version}' --show libcommons-codec-java) \
+	                 -Vcommons-io:Version=$(shell dpkg-query -f '$${source:Version}' --show libcommons-io-java) \
+	                 -Vjsoup:Version=$(shell dpkg-query -f '$${source:Version}' --show libjsoup-java ) \

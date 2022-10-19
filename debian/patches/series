@@ -1,0 +1,5 @@
+do_not_build_ftp_tests.patch
+do_not_run_http_tests.patch
+no_mina_sshd.diff
+no_itcould_webdav.diff
+jetty-compatibility.patch
