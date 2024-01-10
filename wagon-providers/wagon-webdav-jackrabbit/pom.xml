@@ -23,7 +23,7 @@ under the License.
   <parent>
     <groupId>org.apache.maven.wagon</groupId>
     <artifactId>wagon-providers</artifactId>
-    <version>3.3.4</version>
+    <version>3.5.3</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -79,11 +79,6 @@ under the License.
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
       <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
     </dependency>
 
     <dependency>

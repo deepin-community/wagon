@@ -20,4 +20,3 @@ junit junit jar s/.*/4.x/ * *
 org.codehaus.plexus plexus-container-default jar s/.*/1.5.5/ * *
 org.codehaus.plexus plexus-utils * s/.*/2.x/ * *
 s/org.eclipse.jetty.aggregate/org.eclipse.jetty/ s/jetty-all/jetty-webapp/ * s/.*/9.x/ * *
-javax.servlet javax.servlet-api * s/.*/3.1/ * *

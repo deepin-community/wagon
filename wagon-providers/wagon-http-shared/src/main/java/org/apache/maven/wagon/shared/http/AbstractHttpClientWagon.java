@@ -23,7 +23,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
@@ -92,6 +91,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -119,7 +119,7 @@ import static org.apache.maven.wagon.shared.http.HttpMessageUtils.formatTransfer
 public abstract class AbstractHttpClientWagon
     extends StreamWagon
 {
-    private final class WagonHttpEntity
+    final class WagonHttpEntity
         extends AbstractHttpEntity
     {
         private final Resource resource;
@@ -154,9 +154,14 @@ public abstract class AbstractHttpClientWagon
             this.wagon = wagon;
         }
 
-        public long getContentLength()
+        public Resource getResource()
         {
-            return length;
+            return resource;
+        }
+
+        public Wagon getWagon()
+        {
+            return wagon;
         }
 
         public InputStream getContent()
@@ -167,6 +172,16 @@ public abstract class AbstractHttpClientWagon
                 return new FileInputStream( this.source );
             }
             return stream;
+        }
+
+        public File getSource()
+        {
+            return source;
+        }
+
+        public long getContentLength()
+        {
+            return length;
         }
 
         public boolean isRepeatable()
@@ -199,29 +214,29 @@ public abstract class AbstractHttpClientWagon
                     if ( read == -1 )
                     {
                         // EOF, but some data has not been written yet.
-                        if ( buffer.position() != 0 )
+                        if ( ( (Buffer) buffer ).position() != 0 )
                         {
-                            buffer.flip();
-                            fireTransferProgress( transferEvent, buffer.array(), buffer.limit() );
-                            output.write( buffer.array(), 0, buffer.limit() );
-                            buffer.clear();
+                            ( (Buffer) buffer ).flip();
+                            fireTransferProgress( transferEvent, buffer.array(), ( (Buffer) buffer ).limit() );
+                            output.write( buffer.array(), 0, ( (Buffer) buffer ).limit() );
+                            ( (Buffer) buffer ).clear();
                         }
 
                         break;
                     }
 
-                    // Prevent minichunking / fragmentation: when less than half the buffer is utilized,
+                    // Prevent minichunking/fragmentation: when less than half the buffer is utilized,
                     // read some more bytes before writing and firing progress.
-                    if ( buffer.position() < halfBufferCapacity )
+                    if ( ( (Buffer) buffer ).position() < halfBufferCapacity )
                     {
                         continue;
                     }
 
-                    buffer.flip();
-                    fireTransferProgress( transferEvent, buffer.array(), buffer.limit() );
-                    output.write( buffer.array(), 0, buffer.limit() );
-                    remaining -= buffer.limit();
-                    buffer.clear();
+                    ( (Buffer) buffer ).flip();
+                    fireTransferProgress( transferEvent, buffer.array(), ( (Buffer) buffer ).limit() );
+                    output.write( buffer.array(), 0, ( (Buffer) buffer ).limit() );
+                    remaining -= ( (Buffer) buffer ).limit();
+                    ( (Buffer) buffer ).clear();
 
                 }
                 output.flush();
@@ -330,8 +345,8 @@ public abstract class AbstractHttpClientWagon
         int nextWait = wait * 2;
         if ( nextWait >= getMaxBackoffWaitSeconds() )
         {
-            throw new TransferFailedException(
-                "Waited too long to access: " + url + ". Return code is: " + SC_TOO_MANY_REQUESTS );
+            throw new TransferFailedException( formatTransferFailedMessage( url, SC_TOO_MANY_REQUESTS,
+                    null, getProxyInfo() ) );
         }
         return nextWait;
     }
@@ -545,6 +560,7 @@ public abstract class AbstractHttpClientWagon
             .setRetryHandler( createRetryHandler() )
             .setServiceUnavailableRetryStrategy( createServiceUnavailableRetryStrategy() )
             .setDefaultAuthSchemeRegistry( createAuthSchemeRegistry() )
+            .setRedirectStrategy( new WagonRedirectStrategy() )
             .build();
     }
 
@@ -594,10 +610,9 @@ public abstract class AbstractHttpClientWagon
             {
                 Credentials creds = new UsernamePasswordCredentials( username, password );
 
-                String host = getRepository().getHost();
-                int port = getRepository().getPort();
-
-                credentialsProvider.setCredentials( getBasicAuthScope().getScope( host, port ), creds );
+                AuthScope targetScope = getBasicAuthScope().getScope( getRepository().getHost(),
+                                                                    getRepository().getPort() );
+                credentialsProvider.setCredentials( targetScope, creds );
             }
         }
 
@@ -623,10 +638,8 @@ public abstract class AbstractHttpClientWagon
                         creds = new UsernamePasswordCredentials( proxyUsername, proxyPassword );
                     }
 
-                    int proxyPort = proxyInfo.getPort();
-
-                    AuthScope authScope = getProxyBasicAuthScope().getScope( proxyHost, proxyPort );
-                    credentialsProvider.setCredentials( authScope, creds );
+                    AuthScope proxyScope = getProxyBasicAuthScope().getScope( proxyHost, proxyInfo.getPort() );
+                    credentialsProvider.setCredentials( proxyScope, creds );
                 }
             }
         }
@@ -657,9 +670,9 @@ public abstract class AbstractHttpClientWagon
         return httpClient;
     }
 
-    public static void setPersistentPool( boolean persistentPool )
+    public static void setPersistentPool( boolean persistent )
     {
-        persistentPool = persistentPool;
+        persistentPool = persistent;
     }
 
     public static void setPoolingHttpClientConnectionManager(
@@ -759,13 +772,14 @@ public abstract class AbstractHttpClientWagon
         // preemptive for put
         // TODO: is it a good idea, though? 'Expect-continue' handshake would serve much better
 
+        // FIXME Perform only when preemptive has been configured
         Repository repo = getRepository();
         HttpHost targetHost = new HttpHost( repo.getHost(), repo.getPort(), repo.getProtocol() );
         AuthScope targetScope = getBasicAuthScope().getScope( targetHost );
 
         if ( credentialsProvider.getCredentials( targetScope ) != null )
         {
-            BasicScheme targetAuth = new BasicScheme();
+            BasicScheme targetAuth = new BasicScheme( StandardCharsets.UTF_8 );
             authCache.put( targetHost, targetAuth );
         }
 
@@ -793,30 +807,31 @@ public abstract class AbstractHttpClientWagon
                     case HttpStatus.SC_ACCEPTED: // 202
                     case HttpStatus.SC_NO_CONTENT:  // 204
                         break;
-                    // handle all redirect even if http specs says " the user agent MUST NOT automatically redirect
-                    // the request unless it can be confirmed by the user"
-                    case HttpStatus.SC_MOVED_PERMANENTLY: // 301
-                    case HttpStatus.SC_MOVED_TEMPORARILY: // 302
-                    case HttpStatus.SC_SEE_OTHER: // 303
-                        put( resource, source, httpEntity, calculateRelocatedUrl( response ) );
-                        return;
-                    //case HttpStatus.SC_UNAUTHORIZED:
+
+                    // TODO Move 401/407 to AuthenticationException after WAGON-587
                     case HttpStatus.SC_FORBIDDEN:
+                    case HttpStatus.SC_UNAUTHORIZED:
+                    case HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED:
+                        EntityUtils.consumeQuietly( response.getEntity() );
                         fireSessionConnectionRefused();
                         throw new AuthorizationException( formatAuthorizationMessage( url,
                                 response.getStatusLine().getStatusCode(),
                                 response.getStatusLine().getReasonPhrase(), getProxyInfo() ) );
 
                     case HttpStatus.SC_NOT_FOUND:
+                    case HttpStatus.SC_GONE:
+                        EntityUtils.consumeQuietly( response.getEntity() );
                         throw new ResourceDoesNotExistException( formatResourceDoesNotExistMessage( url,
                                 response.getStatusLine().getStatusCode(),
                                 response.getStatusLine().getReasonPhrase(), getProxyInfo() ) );
 
                     case SC_TOO_MANY_REQUESTS:
+                        EntityUtils.consumeQuietly( response.getEntity() );
                         put( backoff( wait, url ), resource, source, httpEntity, url );
                         break;
                     //add more entries here
                     default:
+                        EntityUtils.consumeQuietly( response.getEntity() );
                         TransferFailedException e = new TransferFailedException( formatTransferFailedMessage( url,
                                 response.getStatusLine().getStatusCode(),
                                 response.getStatusLine().getReasonPhrase(), getProxyInfo() ) );
@@ -840,14 +855,6 @@ public abstract class AbstractHttpClientWagon
             throw new TransferFailedException( formatTransferFailedMessage( url, getProxyInfo() ), e );
         }
 
-    }
-
-    protected String calculateRelocatedUrl( HttpResponse response )
-    {
-        Header locationHeader = response.getFirstHeader( "Location" );
-        String locationField = locationHeader.getValue();
-        // is it a relative Location or a full ?
-        return locationField.startsWith( "http" ) ? locationField : getURL( getRepository() ) + '/' + locationField;
     }
 
     protected void mkdirs( String dirname )
@@ -884,6 +891,7 @@ public abstract class AbstractHttpClientWagon
                         result = true;
                         break;
 
+                    // TODO Move 401/407 to AuthenticationException after WAGON-587
                     case HttpStatus.SC_FORBIDDEN:
                     case HttpStatus.SC_UNAUTHORIZED:
                     case HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED:
@@ -892,6 +900,7 @@ public abstract class AbstractHttpClientWagon
                                 response.getStatusLine().getReasonPhrase(), getProxyInfo() ) );
 
                     case HttpStatus.SC_NOT_FOUND:
+                    case HttpStatus.SC_GONE:
                         result = false;
                         break;
 
@@ -905,7 +914,6 @@ public abstract class AbstractHttpClientWagon
                                 response.getStatusLine().getReasonPhrase(), getProxyInfo() ) );
                 }
 
-                EntityUtils.consume( response.getEntity() );
                 return result;
             }
             finally
@@ -942,25 +950,20 @@ public abstract class AbstractHttpClientWagon
             requestConfigBuilder.setProxy( proxy );
         }
 
-        HttpMethodConfiguration config =
-            httpConfiguration == null ? null : httpConfiguration.getMethodConfiguration( httpMethod );
+        requestConfigBuilder.setConnectTimeout( getTimeout() );
+        requestConfigBuilder.setSocketTimeout( getReadTimeout() );
+        // We don't apply this to MKCOL because RFC 7231 says that this will not work without a body
+        // and our MKCOL requests don't have a body. They will logically behave like GET.
+        if ( httpMethod instanceof HttpPut )
+        {
+            requestConfigBuilder.setExpectContinueEnabled( true );
+        }
 
+        HttpMethodConfiguration config =
+                httpConfiguration == null ? null : httpConfiguration.getMethodConfiguration( httpMethod );
         if ( config != null )
         {
             ConfigurationUtils.copyConfig( config, requestConfigBuilder );
-        }
-        else
-        {
-            requestConfigBuilder.setSocketTimeout( getReadTimeout() );
-            if ( httpMethod instanceof HttpPut )
-            {
-                requestConfigBuilder.setExpectContinueEnabled( true );
-            }
-        }
-
-        if ( httpMethod instanceof HttpPut )
-        {
-            requestConfigBuilder.setRedirectsEnabled( false );
         }
 
         HttpClientContext localContext = HttpClientContext.create();
@@ -975,7 +978,7 @@ public abstract class AbstractHttpClientWagon
 
             if ( credentialsProvider.getCredentials( targetScope ) != null )
             {
-                BasicScheme targetAuth = new BasicScheme();
+                BasicScheme targetAuth = new BasicScheme( StandardCharsets.UTF_8 );
                 authCache.put( targetHost, targetAuth );
             }
         }
@@ -1010,7 +1013,6 @@ public abstract class AbstractHttpClientWagon
         {
             // TODO: merge with the other headers and have some better defaults, unify with lightweight headers
             method.addHeader(  "Cache-control", "no-cache" );
-            method.addHeader( "Cache-store", "no-store" );
             method.addHeader( "Pragma", "no-cache" );
         }
 
@@ -1173,25 +1175,31 @@ public abstract class AbstractHttpClientWagon
                     // return, leaving last modified set to original value so getIfNewer should return unmodified
                     return;
 
+                // TODO Move 401/407 to AuthenticationException after WAGON-587
                 case HttpStatus.SC_FORBIDDEN:
                 case HttpStatus.SC_UNAUTHORIZED:
                 case HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED:
+                    EntityUtils.consumeQuietly( response.getEntity() );
                     fireSessionConnectionRefused();
                     throw new AuthorizationException( formatAuthorizationMessage( url,
                             response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(),
                             getProxyInfo() ) );
 
                 case HttpStatus.SC_NOT_FOUND:
+                case HttpStatus.SC_GONE:
+                    EntityUtils.consumeQuietly( response.getEntity() );
                     throw new ResourceDoesNotExistException( formatResourceDoesNotExistMessage( url,
                             response.getStatusLine().getStatusCode(),
                             response.getStatusLine().getReasonPhrase(), getProxyInfo() ) );
 
                 case SC_TOO_MANY_REQUESTS:
+                    EntityUtils.consumeQuietly( response.getEntity() );
                     fillInputData( backoff( wait, url ), inputData );
                     break;
 
                 // add more entries here
                 default:
+                    EntityUtils.consumeQuietly( response.getEntity() );
                     cleanupGetTransfer( resource );
                     TransferFailedException e = new TransferFailedException( formatTransferFailedMessage( url,
                             response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(),

@@ -1,6 +1,6 @@
 --- a/wagon-providers/wagon-webdav-jackrabbit/pom.xml
 +++ b/wagon-providers/wagon-webdav-jackrabbit/pom.xml
-@@ -159,6 +159,15 @@
+@@ -154,6 +154,15 @@
            </systemPropertyVariables>
          </configuration>
        </plugin>

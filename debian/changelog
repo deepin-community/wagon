@@ -1,3 +1,23 @@
+wagon (3.5.3-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+    - Refreshed the patches
+  * Set the target release to Java 8 (Closes: #1027558)
+  * Standards-Version updated to 4.6.2
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 02 Jan 2023 14:43:37 +0100
+
+wagon (3.5.2-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release
+    - Refreshed the patches
+  * Depend on libservlet-api-java instead of libservlet3.1-java
+  * Standards-Version updated to 4.6.1
+
+ -- Emmanuel Bourg <ebourg@apache.org>  Mon, 05 Dec 2022 16:11:19 +0100
+
 wagon (3.3.4-1) unstable; urgency=medium
 
   * Team upload.

@@ -20,11 +20,9 @@ package org.apache.maven.wagon.providers.webdav;
  */
 
 import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
-import org.apache.http.auth.AuthScope;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.util.EntityUtils;
 import org.apache.jackrabbit.webdav.DavConstants;
 import org.apache.jackrabbit.webdav.DavException;
 import org.apache.jackrabbit.webdav.MultiStatus;
@@ -51,6 +49,8 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.apache.maven.wagon.shared.http.HttpMessageUtils.formatResourceDoesNotExistMessage;
 
 /**
  * <p>WebDavWagon</p>
@@ -152,15 +152,6 @@ public class WebDavWagon
     private int doMkCol( String url )
         throws IOException
     {
-        Repository repo = getRepository();
-        HttpHost targetHost = new HttpHost( repo.getHost(), repo.getPort(), repo.getProtocol() );
-        AuthScope targetScope = getBasicAuthScope().getScope( targetHost );
-
-        if ( getCredentialsProvider().getCredentials( targetScope ) != null )
-        {
-            BasicScheme targetAuth = new BasicScheme();
-            getAuthCache().put( targetHost, targetAuth );
-        }
         HttpMkcol method = new HttpMkcol( url );
         try ( CloseableHttpResponse closeableHttpResponse = execute( method ) )
         {
@@ -298,9 +289,13 @@ public class WebDavWagon
                     return dirs;
                 }
 
-                if ( closeableHttpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND )
+                int statusCode = closeableHttpResponse.getStatusLine().getStatusCode();
+                String reasonPhrase = closeableHttpResponse.getStatusLine().getReasonPhrase();
+                if ( statusCode == HttpStatus.SC_NOT_FOUND || statusCode == HttpStatus.SC_GONE )
                 {
-                    throw new ResourceDoesNotExistException( "Destination directory does not exist: " + url );
+                    EntityUtils.consumeQuietly( closeableHttpResponse.getEntity() );
+                    throw new ResourceDoesNotExistException( formatResourceDoesNotExistMessage( url, statusCode,
+                            reasonPhrase, getProxyInfo() ) );
                 }
             }
         }
@@ -335,6 +330,7 @@ public class WebDavWagon
                 }
             }
         }
+        // FIXME WAGON-580; actually the exception is wrong here; we need an IllegalStateException here
         throw new ResourceDoesNotExistException(
             "Destination path exists but is not a " + "WebDAV collection (directory): " + url );
     }
