@@ -1,4 +1,4 @@
-package org.apache.maven.wagon.providers.http;
+package org.apache.maven.wagon.providers.webdav;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,38 +19,22 @@ package org.apache.maven.wagon.providers.http;
  * under the License.
  */
 
-import java.util.Properties;
-
-import org.apache.maven.wagon.StreamingWagon;
-import org.apache.maven.wagon.http.HttpWagonTestCase;
+import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.shared.http.HttpConfiguration;
 import org.apache.maven.wagon.shared.http.HttpMethodConfiguration;
 
-/**
- * @author <a href="michal.maczka@dimatics.com">Michal Maczka</a>
- */
-public class HttpWagonTest
-    extends HttpWagonTestCase
+public class WebDavWagonPreemptiveTest
+    extends WebDavWagonTest
 {
-    protected String getProtocol()
+    @Override
+    protected Wagon getWagon()
+        throws Exception
     {
-        return "http";
-    }
-
-    protected String getTestRepositoryUrl()
-    {
-        return getProtocol() + "://localhost:" + getTestRepositoryPort();
-    }
-
-    protected void setHttpConfiguration( StreamingWagon wagon, Properties headers, Properties params )
-    {
-        HttpConfiguration config = new HttpConfiguration();
-
-        HttpMethodConfiguration methodConfiguration = new HttpMethodConfiguration();
-        methodConfiguration.setHeaders( headers );
-        methodConfiguration.setParams( params );
-        config.setAll( methodConfiguration );
-        ( (HttpWagon) wagon ).setHttpConfiguration( config );
+        WebDavWagon wagon = (WebDavWagon) super.getWagon();
+        wagon.setHttpConfiguration(
+            new HttpConfiguration() //
+                .setAll( new HttpMethodConfiguration().setUsePreemptive( true ) ) );
+        return wagon;
     }
 
     @Override
@@ -62,12 +46,7 @@ public class HttpWagonTest
     @Override
     protected boolean supportPreemptiveAuthenticationGet()
     {
-        return false;
-    }
-
-    @Override
-    protected boolean supportProxyPreemptiveAuthentication()
-    {
         return true;
     }
+
 }

@@ -1,18 +1,22 @@
 package org.apache.maven.wagon.providers.webdav;
 
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
- * agreements. See the NOTICE file distributed with this work for additional information regarding
- * copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License. You may obtain a
- * copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 import it.could.webdav.DAVServlet;
@@ -50,17 +54,6 @@ import javax.servlet.http.HttpServletResponse;
 public class WebDavWagonTest
     extends HttpWagonTestCase
 {
-
-    @Override
-    protected Wagon getWagon()
-        throws Exception
-    {
-        WebDavWagon wagon = (WebDavWagon) super.getWagon();
-        wagon.setHttpConfiguration(
-            new HttpConfiguration() //
-                .setPut( new HttpMethodConfiguration().setUsePreemptive( true ) ));
-        return wagon;
-    }
 
     protected String getTestRepositoryUrl()
         throws IOException
@@ -242,9 +235,15 @@ public class WebDavWagonTest
         }
     }
 
-    protected void setHttpHeaders( StreamingWagon wagon, Properties properties )
+    protected void setHttpConfiguration( StreamingWagon wagon, Properties headers, Properties params )
     {
-        ( (WebDavWagon) wagon ).setHttpHeaders( properties );
+        HttpConfiguration config = new HttpConfiguration();
+
+        HttpMethodConfiguration methodConfiguration = new HttpMethodConfiguration();
+        methodConfiguration.setHeaders( headers );
+        methodConfiguration.setParams( params );
+        config.setAll( methodConfiguration );
+        ( (WebDavWagon) wagon ).setHttpConfiguration( config );
     }
 
     /**
@@ -419,7 +418,7 @@ public class WebDavWagonTest
     @Override
     protected boolean supportPreemptiveAuthenticationPut()
     {
-        return true;
+        return false;
     }
 
     @Override
@@ -500,7 +499,7 @@ public class WebDavWagonTest
         assertEquals( "found:" + putHandler.handlerRequestResponses, 1, putHandler.handlerRequestResponses.size() );
         assertEquals( "found:" + putHandler.handlerRequestResponses, HttpServletResponse.SC_CREATED,
                       putHandler.handlerRequestResponses.get( 0 ).responseCode );
-        assertEquals( "found:" + redirectHandler.handlerRequestResponses, 3,
+        assertEquals( "found:" + redirectHandler.handlerRequestResponses, 2,
                       redirectHandler.handlerRequestResponses.size() );
         assertEquals( "found:" + redirectHandler.handlerRequestResponses, HttpServletResponse.SC_SEE_OTHER,
                       redirectHandler.handlerRequestResponses.get( 0 ).responseCode );
@@ -512,7 +511,7 @@ public class WebDavWagonTest
     {
         assertEquals( "found:" + putHandler.handlerRequestResponses, 0, putHandler.handlerRequestResponses.size() );
 
-        assertEquals( "found:" + redirectHandler.handlerRequestResponses, 6,
+        assertEquals( "found:" + redirectHandler.handlerRequestResponses, 4,
                       redirectHandler.handlerRequestResponses.size() );
         assertEquals( "found:" + redirectHandler.handlerRequestResponses, HttpServletResponse.SC_SEE_OTHER,
                       redirectHandler.handlerRequestResponses.get( 0 ).responseCode );

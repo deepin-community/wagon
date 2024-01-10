@@ -19,19 +19,13 @@ package org.apache.maven.wagon.shared.http;
  * under the License.
  */
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 
 /**
- * 
+ *
  */
 public class HttpConfiguration
 {
-    
-    private static final HttpMethodConfiguration DEFAULT_PUT =
-        new HttpMethodConfiguration().addParam( "http.protocol.expect-continue", "%b,true" );
 
     private HttpMethodConfiguration all;
 
@@ -40,6 +34,8 @@ public class HttpConfiguration
     private HttpMethodConfiguration put;
 
     private HttpMethodConfiguration head;
+
+    private HttpMethodConfiguration mkcol;
 
     public HttpMethodConfiguration getAll()
     {
@@ -85,22 +81,32 @@ public class HttpConfiguration
         return this;
     }
 
+    public HttpMethodConfiguration getMkcol()
+    {
+        return mkcol;
+    }
+
+    public HttpConfiguration setMkcol( HttpMethodConfiguration mkcol )
+    {
+        this.mkcol = mkcol;
+        return this;
+    }
+
     public HttpMethodConfiguration getMethodConfiguration( HttpUriRequest method )
     {
-        if ( method instanceof HttpGet )
+        switch ( method.getMethod() )
         {
+        case "GET":
             return ConfigurationUtils.merge( all, get );
-        }
-        else if ( method instanceof HttpPut )
-        {
-            return ConfigurationUtils.merge( DEFAULT_PUT, all, put );
-        }
-        else if ( method instanceof HttpHead )
-        {
+        case "PUT":
+            return ConfigurationUtils.merge( all, put );
+        case "HEAD":
             return ConfigurationUtils.merge( all, head );
+        case "MKCOL":
+            return ConfigurationUtils.merge( all, mkcol );
+        default:
+            return all;
         }
-
-        return all;
     }
 
 }

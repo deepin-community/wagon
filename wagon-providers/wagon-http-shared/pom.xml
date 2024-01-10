@@ -23,7 +23,7 @@ under the License.
   <parent>
     <groupId>org.apache.maven.wagon</groupId>
     <artifactId>wagon-providers</artifactId>
-    <version>3.3.4</version>
+    <version>3.5.3</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -34,11 +34,6 @@ under the License.
   </description>
 
   <dependencies>
-    <dependency>
-      <groupId>org.jsoup</groupId>
-      <artifactId>jsoup</artifactId>
-      <version>1.12.1</version>
-    </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
@@ -54,8 +49,8 @@ under the License.
       <artifactId>httpcore</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

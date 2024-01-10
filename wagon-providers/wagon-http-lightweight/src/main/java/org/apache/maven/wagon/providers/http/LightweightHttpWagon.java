@@ -19,7 +19,6 @@ package org.apache.maven.wagon.providers.http;
  * under the License.
  */
 
-import org.apache.commons.io.IOUtils;
 import org.apache.maven.wagon.ConnectionException;
 import org.apache.maven.wagon.InputData;
 import org.apache.maven.wagon.OutputData;
@@ -32,7 +31,6 @@ import org.apache.maven.wagon.events.TransferEvent;
 import org.apache.maven.wagon.proxy.ProxyInfo;
 import org.apache.maven.wagon.resource.Resource;
 import org.apache.maven.wagon.shared.http.EncodingUtil;
-import org.apache.maven.wagon.shared.http.HtmlFileListParser;
 import org.codehaus.plexus.util.Base64;
 
 import java.io.FileNotFoundException;
@@ -169,8 +167,10 @@ public class LightweightHttpWagon
                 int responseCode = urlConnection.getResponseCode();
                 String reasonPhrase = urlConnection.getResponseMessage();
 
+                // TODO Move 401/407 to AuthenticationException after WAGON-587
                 if ( responseCode == HttpURLConnection.HTTP_FORBIDDEN
-                        || responseCode == HttpURLConnection.HTTP_UNAUTHORIZED )
+                        || responseCode == HttpURLConnection.HTTP_UNAUTHORIZED
+                        || responseCode == HttpURLConnection.HTTP_PROXY_AUTH )
                 {
                     throw new AuthorizationException( formatAuthorizationMessage( buildUrl( resource ),
                             responseCode, reasonPhrase, getProxyInfo() ) );
@@ -276,12 +276,15 @@ public class LightweightHttpWagon
                 case HttpURLConnection.HTTP_NO_CONTENT: // 204
                     break;
 
-                // TODO: handle 401 explicitly?
+                // TODO Move 401/407 to AuthenticationException after WAGON-587
                 case HttpURLConnection.HTTP_FORBIDDEN:
+                case HttpURLConnection.HTTP_UNAUTHORIZED:
+                case HttpURLConnection.HTTP_PROXY_AUTH:
                     throw new AuthorizationException( formatAuthorizationMessage( buildUrl( resource ), statusCode,
                             reasonPhrase, getProxyInfo() ) );
 
                 case HttpURLConnection.HTTP_NOT_FOUND:
+                case HttpURLConnection.HTTP_GONE:
                     throw new ResourceDoesNotExistException( formatResourceDoesNotExistMessage( buildUrl( resource ),
                             statusCode, reasonPhrase, getProxyInfo() ) );
 
@@ -379,50 +382,6 @@ public class LightweightHttpWagon
         authenticator.resetWagon();
     }
 
-    public List<String> getFileList( String destinationDirectory )
-        throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException
-    {
-        InputData inputData = new InputData();
-
-        if ( destinationDirectory.length() > 0 && !destinationDirectory.endsWith( "/" ) )
-        {
-            destinationDirectory += "/";
-        }
-
-        String url = buildUrl( new Resource( destinationDirectory ) );
-
-        Resource resource = new Resource( destinationDirectory );
-
-        inputData.setResource( resource );
-
-        fillInputData( inputData );
-
-        InputStream is = inputData.getInputStream();
-
-        try
-        {
-
-            if ( is == null )
-            {
-                throw new TransferFailedException(
-                    url + " - Could not open input stream for resource: '" + resource + "'" );
-            }
-
-            final List<String> htmlFileList = HtmlFileListParser.parseFileList( url, is );
-            is.close();
-            is = null;
-            return htmlFileList;
-        }
-        catch ( final IOException e )
-        {
-            throw new TransferFailedException( "Failure transferring " + resource.getName(), e );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( is );
-        }
-    }
-
     public boolean resourceExists( String resourceName )
         throws TransferFailedException, AuthorizationException
     {
@@ -437,27 +396,29 @@ public class LightweightHttpWagon
             addHeaders( headConnection );
 
             headConnection.setRequestMethod( "HEAD" );
-            headConnection.setDoOutput( true );
 
             int statusCode = headConnection.getResponseCode();
+            String reasonPhrase = headConnection.getResponseMessage();
 
             switch ( statusCode )
             {
                 case HttpURLConnection.HTTP_OK:
                     return true;
 
-                case HttpURLConnection.HTTP_FORBIDDEN:
-                    throw new AuthorizationException( "Access denied to: " + url );
-
                 case HttpURLConnection.HTTP_NOT_FOUND:
+                case HttpURLConnection.HTTP_GONE:
                     return false;
 
+                // TODO Move 401/407 to AuthenticationException after WAGON-587
+                case HttpURLConnection.HTTP_FORBIDDEN:
                 case HttpURLConnection.HTTP_UNAUTHORIZED:
-                    throw new AuthorizationException( "Access denied to: " + url );
+                case HttpURLConnection.HTTP_PROXY_AUTH:
+                    throw new AuthorizationException( formatAuthorizationMessage( buildUrl( resource ),
+                            statusCode, reasonPhrase, getProxyInfo() ) );
 
                 default:
-                    throw new TransferFailedException(
-                        "Failed to look for file: " + buildUrl( resource ) + ". Return code is: " + statusCode );
+                    throw new TransferFailedException( formatTransferFailedMessage( buildUrl( resource ),
+                            statusCode, reasonPhrase, getProxyInfo() ) );
             }
         }
         catch ( IOException e )
