@@ -25,9 +25,9 @@ Build-Depends:
  libplexus-container-default1.5-java,
  libplexus-interactivity-api-java,
  libplexus-utils2-java,
- libservlet3.1-java,
+ libservlet-api-java,
  maven-debian-helper
-Standards-Version: 4.5.0
+Standards-Version: 4.6.2
 Vcs-Git: https://salsa.debian.org/java-team/wagon.git
 Vcs-Browser: https://salsa.debian.org/java-team/wagon
 Homepage: http://maven.apache.org/wagon/

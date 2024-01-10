@@ -59,6 +59,7 @@ import org.eclipse.jetty.util.security.Password;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -152,27 +153,15 @@ public abstract class HttpWagonTestCase
         server.stop();
     }
 
-    public void testWagonGetFileList()
-        throws Exception
-    {
-        File dir = getRepositoryDirectory();
-        FileUtils.deleteDirectory( dir );
-
-        File f = new File( dir, "file-list" );
-        f.mkdirs();
-
-        super.testWagonGetFileList();
-    }
-
     public void testHttpHeaders()
         throws Exception
     {
-        Properties properties = new Properties();
-        properties.setProperty( "User-Agent", "Maven-Wagon/1.0" );
+        Properties headers = new Properties();
+        headers.setProperty( "User-Agent", "Maven-Wagon/1.0" );
 
         StreamingWagon wagon = (StreamingWagon) getWagon();
 
-        setHttpHeaders( wagon, properties );
+        setHttpConfiguration( wagon, headers, new Properties() );
 
         Server server = new Server(  );
         TestHeaderHandler handler = new TestHeaderHandler();
@@ -251,7 +240,7 @@ public abstract class HttpWagonTestCase
         // 1. set User-Agent header via HttpConfiguration
         Properties headers1 = new Properties();
         headers1.setProperty( "User-Agent", "test-user-agent" );
-        setHttpHeaders( wagon, headers1 );
+        setHttpConfiguration( wagon, headers1, new Properties() );
 
         // 2. redundantly set User-Agent header via setHttpHeaders()
         Properties headers2 = new Properties();
@@ -273,7 +262,7 @@ public abstract class HttpWagonTestCase
 
     }
 
-    protected abstract void setHttpHeaders( StreamingWagon wagon, Properties properties );
+    protected abstract void setHttpConfiguration( StreamingWagon wagon, Properties headers, Properties params );
 
     protected ServerConnector addConnector( Server server )
     {
@@ -314,73 +303,6 @@ public abstract class HttpWagonTestCase
         catch ( ResourceDoesNotExistException e )
         {
             assertTrue( true );
-        }
-    }
-
-    public void testList429()
-        throws Exception
-    {
-        StreamingWagon wagon = (StreamingWagon) getWagon();
-        try
-        {
-
-            Server server = new Server(  );
-            final AtomicBoolean called = new AtomicBoolean();
-
-            AbstractHandler handler = new AbstractHandler()
-            {
-                public void handle( String target, Request baseRequest, HttpServletRequest request,
-                    HttpServletResponse response ) throws IOException, ServletException
-                {
-                    if ( called.get() )
-                    {
-                        response.setStatus( HttpServletResponse.SC_OK );
-                        baseRequest.setHandled( true );
-                    }
-                    else
-                    {
-                        called.set( true );
-                        response.setStatus( SC_TOO_MANY_REQUESTS );
-                        baseRequest.setHandled( true );
-
-                    }
-                }
-            };
-
-            server.setHandler( handler );
-            ServerConnector serverConnector = addConnector( server );
-            server.start();
-
-            wagon.connect( new Repository( "id", getRepositoryUrl( server ) ) );
-
-            try
-            {
-                wagon.getFileList( "resource" );
-            }
-            finally
-            {
-                wagon.disconnect();
-
-                server.stop();
-            }
-
-        }
-        catch ( ResourceDoesNotExistException e )
-        {
-            assertTrue( true );
-        }
-        catch ( TransferFailedException e )
-        {
-            if ( wagon.getClass().getName().contains( "Lightweight" ) )
-            {
-                //we don't care about lightweight
-                assertTrue( true );
-            }
-            else
-            {
-                fail();
-            }
-
         }
     }
 
@@ -1167,6 +1089,73 @@ public abstract class HttpWagonTestCase
         }
     }
 
+    public void testRedirectPutFailureNonRepeatableStream()
+            throws Exception
+        {
+            File repositoryDirectory = getRepositoryDirectory();
+            FileUtils.deleteDirectory( repositoryDirectory );
+            repositoryDirectory.mkdirs();
+
+            Server redirectServer = new Server( );
+
+            addConnector( redirectServer );
+
+            RedirectHandler redirectHandler =
+                new RedirectHandler( "See Other", HttpServletResponse.SC_SEE_OTHER, "/redirectRequest/foo",
+                                     null );
+
+            redirectServer.setHandler( redirectHandler );
+
+            redirectServer.start();
+
+            try
+            {
+                StreamingWagon wagon = (StreamingWagon) getWagon();
+
+                Properties params = new Properties();
+                params.put( "http.protocol.expect-continue", "%b,false" );
+                setHttpConfiguration( wagon, new Properties(), params );
+                Repository repository = new Repository( "foo", getRepositoryUrl( redirectServer ) );
+                wagon.connect( repository );
+
+                File sourceFile = new File( repositoryDirectory, "/redirectRequest/foo/test-secured-put-resource" );
+                sourceFile.delete();
+                assertFalse( sourceFile.exists() );
+
+                File tempFile = File.createTempFile( "wagon", "tmp" );
+                tempFile.deleteOnExit();
+                String content = "put top secret";
+                FileUtils.fileWrite( tempFile.getAbsolutePath(), content );
+
+                try ( FileInputStream fileInputStream = new FileInputStream( tempFile ) )
+                {
+                    wagon.putFromStream( fileInputStream, "test-secured-put-resource", content.length(), -1 );
+                    // This does not behave as expected because LightweightWagon does buffering by default
+                    if ( wagon.getClass().getName().contains( "Lightweight" ) )
+                    {
+                        assertTrue( true );
+                    }
+                    else
+                    {
+                        fail();
+                    }
+                }
+                catch ( TransferFailedException e )
+                {
+                    assertTrue( true );
+                }
+                finally
+                {
+                    wagon.disconnect();
+                    tempFile.delete();
+                }
+
+            }
+            finally
+            {
+                redirectServer.stop();
+            }
+        }
 
     /**
      *
@@ -1810,7 +1799,7 @@ public abstract class HttpWagonTestCase
             runTestSecuredPut( null );
             fail();
         }
-        catch ( TransferFailedException e )
+        catch ( AuthorizationException e )
         {
             assertTrue( true );
         }
@@ -1827,7 +1816,7 @@ public abstract class HttpWagonTestCase
             runTestSecuredPut( authInfo );
             fail();
         }
-        catch ( TransferFailedException e )
+        catch ( AuthorizationException e )
         {
             assertTrue( true );
         }
@@ -2329,7 +2318,7 @@ public abstract class HttpWagonTestCase
                     assertTrue( "404 not found response should throw ResourceDoesNotExistException",
                             e instanceof ResourceDoesNotExistException );
                     reasonPhrase = StringUtils.isEmpty( forReasonPhrase ) ? " Not Found" : ( " " + forReasonPhrase );
-                    assertEquals( assertMessageForBadMessage, "Resource missing at " + forUrl + " 404"
+                    assertEquals( assertMessageForBadMessage, "resource missing at " + forUrl + ", status: 404"
                             + reasonPhrase, e.getMessage() );
                     break;
 
@@ -2340,7 +2329,7 @@ public abstract class HttpWagonTestCase
                                     + "methods",
                             e instanceof AuthorizationException );
                     reasonPhrase = StringUtils.isEmpty( forReasonPhrase ) ? " Unauthorized" : ( " " + forReasonPhrase );
-                    assertEquals( assertMessageForBadMessage, "Authentication failed for " + forUrl + " 401"
+                    assertEquals( assertMessageForBadMessage, "authentication failed for " + forUrl + ", status: 401"
                             + reasonPhrase, e.getMessage() );
                     break;
 
@@ -2349,15 +2338,15 @@ public abstract class HttpWagonTestCase
                             e instanceof AuthorizationException );
                     reasonPhrase = StringUtils.isEmpty( forReasonPhrase ) ? " Proxy Authentication Required"
                             : ( " " + forReasonPhrase );
-                    assertEquals( assertMessageForBadMessage, "HTTP proxy server authentication failed for "
-                            + forUrl + " 407" + reasonPhrase, e.getMessage() );
+                    assertEquals( assertMessageForBadMessage, "proxy authentication failed for "
+                            + forUrl + ", status: 407" + reasonPhrase, e.getMessage() );
                     break;
 
                 case HttpServletResponse.SC_FORBIDDEN:
                     assertTrue( "403 Forbidden should throw AuthorizationException",
                             e instanceof AuthorizationException );
                     reasonPhrase = StringUtils.isEmpty( forReasonPhrase ) ? " Forbidden" : ( " " + forReasonPhrase );
-                    assertEquals( assertMessageForBadMessage, "Authorization failed for " + forUrl + " 403"
+                    assertEquals( assertMessageForBadMessage, "authorization failed for " + forUrl + ", status: 403"
                             + reasonPhrase, e.getMessage() );
                     break;
 
@@ -2367,7 +2356,7 @@ public abstract class HttpWagonTestCase
                     assertTrue( "expected status code for transfer failures should be >= 400",
                             forStatusCode >= HttpServletResponse.SC_BAD_REQUEST );
                     reasonPhrase = forReasonPhrase == null ? "" : " " + forReasonPhrase;
-                    assertEquals( assertMessageForBadMessage, "Transfer failed for " + forUrl + " "
+                    assertEquals( assertMessageForBadMessage, "transfer failed for " + forUrl + ", status: "
                             + forStatusCode + reasonPhrase, e.getMessage() );
                     break;
             }

@@ -3,7 +3,7 @@ Author: Emmanuel Bourg <ebourg@apache.org>
 Forwarded: no
 --- a/wagon-provider-test/src/main/java/org/apache/maven/wagon/http/HttpWagonTestCase.java
 +++ b/wagon-provider-test/src/main/java/org/apache/maven/wagon/http/HttpWagonTestCase.java
-@@ -2239,7 +2239,9 @@
+@@ -2228,7 +2228,9 @@
  
          TestSecurityHandler sh = new TestSecurityHandler();
          HashLoginService hashLoginService = new HashLoginService( "MyRealm" );

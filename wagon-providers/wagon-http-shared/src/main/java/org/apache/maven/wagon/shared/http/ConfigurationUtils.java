@@ -54,19 +54,16 @@ public class ConfigurationUtils
     private static final String MAX_REDIRECTS               = "http.protocol.max-redirects";
     private static final String HANDLE_REDIRECTS            = "http.protocol.handle-redirects";
     private static final String REJECT_RELATIVE_REDIRECT    = "http.protocol.reject-relative-redirect";
+    private static final String HANDLE_CONTENT_COMPRESSION  = "http.protocol.handle-content-compression";
+    private static final String HANDLE_URI_NORMALIZATION    = "http.protocol.handle-uri-normalization";
 
     private static final String COERCE_PATTERN = "%(\\w+),(.+)";
 
     public static void copyConfig( HttpMethodConfiguration config, RequestConfig.Builder builder )
     {
-        if ( config.getConnectionTimeout() > 0 )
-        {
-            builder.setConnectTimeout( config.getConnectionTimeout() );
-        }
-        if ( config.getReadTimeout() > 0 )
-        {
-            builder.setSocketTimeout( config.getReadTimeout() );
-        }
+        builder.setConnectTimeout( config.getConnectionTimeout() );
+        builder.setSocketTimeout( config.getReadTimeout() );
+
         Properties params = config.getParams();
         if ( params != null )
         {
@@ -100,7 +97,7 @@ public class ConfigurationUtils
                 }
                 else if ( key.equals( DEFAULT_PROXY ) )
                 {
-                    builder.setProxy( new HttpHost( value ) );
+                    builder.setProxy( HttpHost.create( value ) );
                 }
                 else if ( key.equals( LOCAL_ADDRESS ) )
                 {
@@ -148,6 +145,14 @@ public class ConfigurationUtils
                 else if ( key.equals( REJECT_RELATIVE_REDIRECT ) )
                 {
                     builder.setRelativeRedirectsAllowed( !Boolean.valueOf( value ) );
+                }
+                else if ( key.equals ( HANDLE_CONTENT_COMPRESSION ) )
+                {
+                    builder.setContentCompressionEnabled( Boolean.valueOf( value ) );
+                }
+                else if ( key.equals ( HANDLE_URI_NORMALIZATION ) )
+                {
+                    builder.setNormalizeUri( Boolean.valueOf( value ) );
                 }
             }
         }
